@@ -1,0 +1,190 @@
+import java.lang.*;
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
+class Bike
+{
+    private String place;
+    private String name;
+    private String color;
+    private boolean hasABS;
+    private double price;
+
+    public Bike(String name, String color, boolean hasABS, double price, String place)
+    {
+        this.name = name;
+        this.color = color;
+        this.hasABS = hasABS; // as a bike fanboy i have added this a little extra
+        this.price = price;
+        this.place = place;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public String getColor()
+    {
+        return color;
+    }
+
+    public boolean hasABS()
+    {
+        return hasABS;
+    }
+
+    public double getPrice()
+    {
+        return price;
+    }
+
+    public String getPlace() 
+    {
+        return place;
+    }
+}
+class Coupon
+ {
+    private String code;
+    private double discountPercentage;  //lets keep them private so that they are not easily accessible
+
+    public Coupon(String code, double discountPercentage) 
+    {
+        this.code = code;
+        this.discountPercentage = discountPercentage;
+    }
+
+    public String getCode() 
+    {
+        return code;
+    }
+
+    public double getDiscountPercentage() 
+    {
+        return discountPercentage;
+    }
+}
+
+public class VIT_BikeShop
+ {
+    public static void main(String[] args) 
+    { 
+        // Creating a shorter way to print stuff using the PrintWriter Class
+        PrintWriter q = new PrintWriter(System.out,true);
+        // Create a list of Indian bikes Please do ignore the mixture of brands
+        List<Bike> bikes = new ArrayList<>();
+        bikes.add(new Bike("Yamaha MT 15 V2", "Black", true, 164000,"Chennai"));
+        bikes.add(new Bike("Royal Enfield Hunter 350", "Green", false, 149000,"Chennai"));
+        bikes.add(new Bike("TVS Apache RTR 160", "White", true, 113000,"Bangalore"));
+        bikes.add(new Bike("Bajaj Pulsar NS200", "Yellow", false, 140000,"Bangalore"));
+        bikes.add(new Bike("KTM 390 Duke", "Orange", true, 296000,"Delhi"));
+        bikes.add(new Bike("Yamaha RI 5S", "Blue", false, 163000,"Mumbai"));
+        bikes.add(new Bike("Indian Scout", "Red", true, 230000,"Mumbai"));
+
+        Scanner get = new Scanner(System.in);
+        boolean proceed = false;  
+        // Weinitialize it as false at start and if the user is not happy with the bike he chose and the price
+        // We set back to square one and let him choose
+
+        do 
+        {
+            // Print the available bikes with "starts at" value
+            q.println();
+            q.println("----------------------------------HELLO Biker Welcome to VIT CHENNAI BIKE SHOP-----------------------------------------");
+            q.println("The Available Bikes we have are!!!! ");
+            bikes.forEach(bike -> q.println(bike.getName() + " - Starts at  Rs. " + bike.getPrice()+"\n"));
+
+            // Get user input for warranty period and place
+            q.println("Enter warranty period that u desire in your DREAM Bike(in months)  ");
+            q.println("Terms And Conditions are");
+            q.println("ONLY If any mechanical or electrical part of the bike fails during the warranty period");
+            q.println("it can be replaced without any hassle");
+            int warrantyPeriod = 0;
+            boolean validInput = false;
+            while (!validInput) 
+            {
+                try
+                 {
+                    q.println("Enter warranty period that you desire in your DREAM Bike (in months) ");
+                    warrantyPeriod = get.nextInt();
+                    get.nextLine();
+                    validInput = true;
+                } catch (InputMismatchException e)
+                 {
+                    q.println("Invalid input ,Please enter a valid number for the warranty period   ");
+                    get.nextLine();
+                }
+            }
+            q.println("Enter place  ");
+            String place = get.nextLine();
+            
+            // Filter bikes based on warranty period and place
+            List<Bike> filteredBikes = bikes.stream()
+            .filter(bike -> bike.getPlace().equalsIgnoreCase(place))
+            .collect(Collectors.toList());
+
+            // Calculate costs based on users choices
+            final int finalWarrantyPeriod = warrantyPeriod;
+            double totalCost = filteredBikes.stream()
+                    .mapToDouble(bike -> {
+                        double cost = bike.getPrice();
+                        if (bike.hasABS()) {
+                            cost += 1000;
+                        }
+                        cost += finalWarrantyPeriod * 10; 
+                        return cost;
+                    }).sum();
+        // Apply discounts based on coupon codes
+        q.println("Enter coupon code (if any)  ");
+        String couponCode = get.nextLine();
+
+        List<Coupon> coupons = new ArrayList<>();
+        coupons.add(new Coupon("CODE1", 10));
+        coupons.add(new Coupon("CODE2", 20));
+        coupons.add(new Coupon("CODE3", 30));
+
+        double discount = 0;
+        try {
+            discount = coupons.stream()
+                    .filter(coupon -> coupon.getCode().equalsIgnoreCase(couponCode))
+                    .mapToDouble(Coupon::getDiscountPercentage)
+                    .findFirst()
+                    .orElse(0);
+        } 
+        catch (NoSuchElementException e) 
+        {
+            q.println("Invalid coupon code. No discount applied.");
+        }
+
+        double discountedCost = totalCost - (totalCost * (discount / 100));
+
+        // Calculate on road price for chosen bike
+        q.println("Choose a bike (enter bike name)  ");
+        String chosenBikeName = get.nextLine();
+        Bike chosenBike = filteredBikes.stream()
+                .filter(bike -> bike.getName().equalsIgnoreCase(chosenBikeName))
+                .findFirst()
+                .orElse(null);
+
+        double onRoadPrice = 0;
+        if (chosenBike != null)
+        {
+            onRoadPrice = chosenBike.getPrice() + 20000;
+        }
+
+        // Print the final cost and on road price
+        q.println("Total cost  Rs. " + discountedCost);
+        if (chosenBike != null)
+        {
+            q.println("On road price for " + chosenBike.getName() + "  Rs. " + onRoadPrice);
+        }
+
+        // Ask the user whether to proceed or go back
+        q.println("Do you want to revisit the bikes? (yes/no)");
+        String choice = get.nextLine();
+        proceed = choice.equalsIgnoreCase("yes"); // not bothering the user to reply in CAPS only
+    } 
+    while (proceed);
+    }
+}
